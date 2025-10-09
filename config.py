@@ -68,7 +68,11 @@ def reset_config():
 
 # Get a config setting with an optional default
 def get_config_setting(key, default=None):
-    return app_config.get(key, default)
+    value = app_config.get(key, default)
+    # If the value exists but is an empty string, use the default
+    if value == "" and default is not None:
+        return default
+    return value
 
 # Set a config setting and with option to not save it
 def set_config_setting(key, value, save=True):
