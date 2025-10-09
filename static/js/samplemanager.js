@@ -76,7 +76,15 @@ async function fetchOpzSamples() {
                     e.preventDefault();
                     slotDiv.classList.remove("drag-hover");
 
-                    const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+                    // If files are being dropped, let the box handler deal with it
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        return;
+                    }
+
+                    const textData = e.dataTransfer.getData("text/plain");
+                    if (!textData) return; // No data to process
+
+                    const droppedData = JSON.parse(textData);
                     const fromPath = droppedData.path;
 
                     if (!fromPath || (droppedData.category === category && droppedData.slot == slotIndex)) return;
@@ -193,8 +201,9 @@ document.querySelectorAll(".samplepackbox").forEach(box => {
                 throw new Error("Upload failed");
             }
 
-            const result = await response.json();
-            slotElement.querySelector("span").textContent = `Slot ${parseInt(slot) + 1}: ${result.path}`;
+            await response.json();
+            // Refresh the entire UI to reflect the new sample
+            await fetchOpzSamples();
         } catch (err) {
             console.error("Failed to upload file:", err);
             alert("Upload failed.");

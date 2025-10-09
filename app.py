@@ -131,8 +131,7 @@ def upload_sample():
 
     OPZ_MOUNT_PATH = get_config_setting("OPZ_MOUNT_PATH")
     # Make sure the directory exists
-    target_dir = os.path.join(
-    )
+    target_dir = os.path.join(OPZ_MOUNT_PATH, "samplepacks", category, f"{int(slot)+1:02d}")
     os.makedirs(target_dir, exist_ok=True)
 
     # Clean the filename and write it to disk
@@ -155,7 +154,7 @@ def upload_sample():
         }, 200
 
     except Exception as e:
-        app.logger.error("Upload error:", e)
+        app.logger.error(f"Upload error: {e}")
         return {"error": "File save failed"}, 500
 
 @app.route("/delete-sample", methods=["DELETE"])
@@ -218,7 +217,7 @@ def move_sample():
         return {"status": "moved", "path": escape(target_path)}, 200
 
     except Exception as e:
-        app.logger.error("Move error:", e)
+        app.logger.error(f"Move error: {e}")
         return {"error": "Move failed"}, 500
 
 @app.route("/convert", methods=["POST"])
@@ -262,13 +261,13 @@ def convert_sample():
     try:
         subprocess.run(ffmpeg_cmd, check=True)
     except subprocess.CalledProcessError as e:
-        app.logger.error("Subprocess Error:", e)
+        app.logger.error(f"Subprocess Error: {e}")
         return jsonify({"error": "Conversion failed"}), 500
     except Exception as e:
         app.logger.error("Unknown error while attempting to run the FFMPEG subprocess.")
         if os.name == "nt":
             app.logger.warning("Windows detected. This error is often due to a misconfigured FFMPEG path. Double check it.")
-        app.logger.error("Error details:", e)
+        app.logger.error(f"Error details: {e}")
         return jsonify({"error": "Conversion failed"}), 500
     finally:
         # Clean up input file
