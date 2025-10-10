@@ -10,3 +10,6 @@ opz_sm_config.json
 
 #pycache
 __pycache__
+
+#LLM
+.claude/

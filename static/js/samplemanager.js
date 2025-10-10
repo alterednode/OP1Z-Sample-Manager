@@ -1,5 +1,5 @@
 let storageUsed = 0;
-let TOTAL_STORAGE = 32000; // 32 MB total storage
+let TOTAL_STORAGE = 24000; // 24 MB total storage
 let numSamples = 0;
 let MAX_SAMPLES = 40; // maximum number of samples allowed
 
