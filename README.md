@@ -30,3 +30,6 @@ Very early in development! Has bugs, UI is unintuitive. Everything is subject to
 
 ### Config File Editor:
 ![config file editor](/screenshots/configeditor.png)
+
+### Utility Settings:
+![utility settings](/screenshots/utilitysettings.png)
