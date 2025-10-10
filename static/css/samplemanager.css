@@ -16,6 +16,17 @@
     margin-bottom: 8px;
     color: var(--text-color);
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sampleslot span {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sampleslot.filled {

@@ -1,5 +1,7 @@
 function setupDragDrop(id, type) {
     const dropArea = document.getElementById(id);
+    const samplePackBox = dropArea.parentElement;
+    let dragCounter = 0;
 
     // Create hidden file input
     const fileInput = document.createElement('input');
@@ -16,20 +18,29 @@ function setupDragDrop(id, type) {
         await handleFiles(event.target.files, type);
     });
 
-    // Drag & Drop behavior
-    dropArea.addEventListener('dragover', (event) => {
+    // Drag & Drop behavior - use samplePackBox to avoid child element issues
+    samplePackBox.addEventListener('dragenter', (event) => {
         event.preventDefault();
-        dropArea.classList.add('dragover');
+        dragCounter++;
+        samplePackBox.classList.add('dragover');
     });
 
-    dropArea.addEventListener('dragleave', (event) => {
+    samplePackBox.addEventListener('dragover', (event) => {
         event.preventDefault();
-        dropArea.classList.remove('dragover');
     });
 
-    dropArea.addEventListener('drop', async (event) => {
+    samplePackBox.addEventListener('dragleave', (event) => {
         event.preventDefault();
-        dropArea.classList.remove('dragover');
+        dragCounter--;
+        if (dragCounter === 0) {
+            samplePackBox.classList.remove('dragover');
+        }
+    });
+
+    samplePackBox.addEventListener('drop', async (event) => {
+        event.preventDefault();
+        dragCounter = 0;
+        samplePackBox.classList.remove('dragover');
         await handleFiles(event.dataTransfer.files, type);
     });
 }
