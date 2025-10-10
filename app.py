@@ -1,5 +1,6 @@
 import sys
-from flask import Flask, render_template
+import webbrowser
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from config import load_config, run_all_config_tasks, get_config_setting, set_config_setting, config_bp
 from sample_converter import sample_converter_bp
@@ -56,6 +57,21 @@ def configeditor():
 @app.route("/utilitysettings")
 def utilitysettings():
     return render_template("utilitysettings.html")
+
+@app.route("/open-external-link")
+def open_external_link():
+    url = request.args.get("url")
+
+    # Validate URL
+    if not url or not url.startswith(("http://", "https://")):
+        return jsonify({"error": "Invalid URL"}), 400
+
+    try:
+        webbrowser.open(url)
+        return jsonify({"status": "opened"}), 200
+    except Exception as e:
+        app.logger.error(f"Error opening external link: {e}")
+        return jsonify({"error": "Failed to open link"}), 500
 
 if __name__ == "__main__":
     app_startup_tasks()

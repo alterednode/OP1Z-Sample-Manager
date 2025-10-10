@@ -39,6 +39,13 @@
     document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     });
+
+    // Function to open external links in system browser
+    function openExternalLink(url) {
+        fetch(`/open-external-link?url=${encodeURIComponent(url)}`)
+            .then(response => response.json())
+            .catch(err => console.error('Error opening link:', err));
+    }
 </script>
 
 <div id="mount-path-container" class="container">
@@ -72,10 +79,10 @@
 </div>
 
 <div style="text-align: center;">
-    <a href="https://github.com/romangarms/opz-sample-manager" target="_blank" class="github-link">
+    <button onclick="openExternalLink('https://github.com/romangarms/opz-sample-manager')" class="github-link">
         <i data-lucide="github"></i>
         View on GitHub
-    </a>
+    </button>
 </div>
 
 {% endblock %}
