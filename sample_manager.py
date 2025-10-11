@@ -41,12 +41,58 @@ def get_sample_type_from_category(category):
     drum_categories = ["1-kick", "2-snare", "3-perc", "4-fx"]
     return "drum" if category in drum_categories else "synth"
 
+def validate_opz_folder_structure(opz_mount_path):
+    """
+    Validate that the provided path contains the expected OP-Z folder structure.
+
+    Args:
+        opz_mount_path: Path to the OP-Z mount directory
+
+    Returns:
+        tuple: (is_valid: bool, error_message: str or None)
+    """
+    if not opz_mount_path:
+        return False, "OP-Z mount path not set. Please select your OP-Z mount directory in Utility Settings."
+
+    if not os.path.exists(opz_mount_path):
+        return False, f"OP-Z mount path does not exist: {opz_mount_path}"
+
+    samplepacks_path = os.path.join(opz_mount_path, "samplepacks")
+    if not os.path.exists(samplepacks_path):
+        return False, "Invalid OP-Z folder: 'samplepacks' directory not found. Please select the root OP-Z mount directory."
+
+    if not os.path.isdir(samplepacks_path):
+        return False, "Invalid OP-Z folder: 'samplepacks' exists but is not a directory."
+
+    # Check if at least some expected category folders exist
+    missing_categories = []
+    for category in SAMPLE_CATEGORIES:
+        category_path = os.path.join(samplepacks_path, category)
+        if not os.path.exists(category_path):
+            missing_categories.append(category)
+
+    # If all categories are missing, it's probably not an OP-Z folder
+    if len(missing_categories) == len(SAMPLE_CATEGORIES):
+        return False, "Invalid OP-Z folder: No sample category folders found in 'samplepacks' directory."
+
+    return True, None
+
 @sample_manager_bp.route("/read-samples")
 def read_opz():
     OPZ_MOUNT_PATH = get_config_setting("OPZ_MOUNT_PATH")
-    sample_data = []
     current_app.logger.info(f"Reading samples from: {OPZ_MOUNT_PATH}")
 
+    # Validate the OP-Z folder structure
+    is_valid, error_message = validate_opz_folder_structure(OPZ_MOUNT_PATH)
+    if not is_valid:
+        current_app.logger.warning(f"OP-Z folder validation failed: {error_message}")
+        return jsonify({
+            "validation_error": error_message,
+            "sampleData": [],
+            "categories": SAMPLE_CATEGORIES
+        })
+
+    sample_data = []
     for category in SAMPLE_CATEGORIES:
         category_data = []
         for slot in range(NUMBER_OF_SAMPLES_PER_SLOT):

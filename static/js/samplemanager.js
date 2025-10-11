@@ -38,6 +38,29 @@ async function fetchOpzSamples() {
         }
         const data = await response.json();
 
+        // Check for validation errors
+        const errorContainer = document.getElementById("validation-error-container");
+        const errorMessage = document.getElementById("validation-error-message");
+        const storageInfo = document.getElementById("storage-info");
+        const fileList = document.getElementById("file-list");
+
+        if (data.validation_error) {
+            // Show error message
+            errorMessage.innerHTML = data.validation_error + ' <a href="/utilitysettings" class="btn btn-danger">Go to Utility Settings</a>';
+            errorContainer.hidden = false;
+
+            // Hide the storage info and file list
+            if (storageInfo) storageInfo.hidden = true;
+            if (fileList) fileList.hidden = true;
+
+            return;
+        }
+
+        // No validation error - hide error container and show normal UI
+        errorContainer.hidden = true;
+        if (storageInfo) storageInfo.hidden = false;
+        if (fileList) fileList.hidden = false;
+
         storageUsed = 0;
         numSamples = 0;
 
