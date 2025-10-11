@@ -114,3 +114,60 @@
     border-top: 3px solid var(--background-color);
     margin: 30px 0;
 }
+
+.storage-bar-container {
+    margin-top: 15px;
+}
+
+.storage-bar {
+    width: 100%;
+    height: 30px;
+    background-color: var(--offwhite);
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.storage-bar-fill {
+    height: 100%;
+    background: var(--first-color);
+    border-radius: 5px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    min-width: 0;
+}
+
+/* Color coding for storage bar levels */
+.storage-bar-fill.storage-low {
+    background-color: var(--first-color); /* Green */
+}
+
+.storage-bar-fill.storage-medium {
+    background-color: var(--third-color); /* Yellow */
+}
+
+.storage-bar-fill.storage-high {
+    background-color: var(--fourth-color); /* Red */
+}
+
+.storage-bar-label {
+    display: block;
+    margin-top: 8px;
+    text-align: center;
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+/* Color coding for storage free value */
+#storage-free.storage-low {
+    color: var(--first-color) !important; /* Green */
+}
+
+#storage-free.storage-medium {
+    color: var(--third-color) !important; /* Yellow */
+}
+
+#storage-free.storage-high {
+    color: var(--fourth-color) !important; /* Red */
+}

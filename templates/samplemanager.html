@@ -26,10 +26,6 @@
     <div class="storage-section">
         <h4>Storage</h4>
         <div class="info-row">
-            <span class="info-label">Total Used:</span>
-            <span class="info-value" id="storage-percent">0%</span>
-        </div>
-        <div class="info-row">
             <span class="info-label">Used:</span>
             <span class="info-value" id="storage-used">0 KB</span>
         </div>
@@ -40,18 +36,16 @@
     </div>
 
     <div class="storage-section">
-        <h4>Samples</h4>
+        <h4>Usage</h4>
         <div class="info-row">
-            <span class="info-label">Total Used:</span>
-            <span class="info-value" id="samples-percent">0%</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Used:</span>
+            <span class="info-label">Samples Used:</span>
             <span class="info-value" id="samples-used">0</span>
         </div>
-        <div class="info-row">
-            <span class="info-label">Free:</span>
-            <span class="info-value" id="samples-free">40</span>
+        <div class="storage-bar-container">
+            <div class="storage-bar">
+                <div class="storage-bar-fill" id="storage-bar-fill"></div>
+            </div>
+            <span class="storage-bar-label" id="storage-bar-label">Storage: 0%</span>
         </div>
     </div>
 </div>

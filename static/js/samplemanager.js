@@ -1,13 +1,11 @@
 let storageUsed = 0;
 let TOTAL_STORAGE = 24000; // 24 MB total storage
 let numSamples = 0;
-let MAX_SAMPLES = 40; // maximum number of samples allowed
 
 function updateStorageDisplay() {
     // Update the storage info display
-    const storagePercentElem = document.getElementById("storage-percent");
     const percent = ((storageUsed / TOTAL_STORAGE) * 100).toFixed(1);
-    storagePercentElem.textContent = `${percent}%`;
+    const percentNum = parseFloat(percent);
 
     const storageUsedElem = document.getElementById("storage-used");
     storageUsedElem.textContent = `${(storageUsed / 1024).toFixed(1)} KB`;
@@ -16,17 +14,37 @@ function updateStorageDisplay() {
     const freeSpace = TOTAL_STORAGE - storageUsed;
     storageFreeElem.textContent = `${(freeSpace / 1024).toFixed(1)} KB`;
 
-    //samples
-    const samplesPercentElem = document.getElementById("samples-percent");
-    const samplesPercent = ((numSamples / MAX_SAMPLES) * 100).toFixed(1);
-    samplesPercentElem.textContent = `${samplesPercent}%`;
-
+    // Update samples count
     const samplesUsedElem = document.getElementById("samples-used");
     samplesUsedElem.textContent = `${numSamples}`;
 
-    const samplesFreeElem = document.getElementById("samples-free");
-    const freeSamples = MAX_SAMPLES - numSamples;
-    samplesFreeElem.textContent = `${freeSamples}`;
+    // Determine color class based on storage percentage
+    // 0-60% = green (low), 60-85% = yellow (medium), 85-100% = red (high)
+    let colorClass = 'storage-low';
+    if (percentNum >= 85) {
+        colorClass = 'storage-high';
+    } else if (percentNum >= 60) {
+        colorClass = 'storage-medium';
+    }
+
+    // Update storage bar with color coding
+    const storageBarFill = document.getElementById("storage-bar-fill");
+    const storageBarLabel = document.getElementById("storage-bar-label");
+    if (storageBarFill) {
+        storageBarFill.style.width = `${percent}%`;
+        // Remove all color classes and add the appropriate one
+        storageBarFill.classList.remove('storage-low', 'storage-medium', 'storage-high');
+        storageBarFill.classList.add(colorClass);
+    }
+    if (storageBarLabel) {
+        storageBarLabel.textContent = `Storage: ${percent}%`;
+    }
+
+    // Update storage free value color
+    if (storageFreeElem) {
+        storageFreeElem.classList.remove('storage-low', 'storage-medium', 'storage-high');
+        storageFreeElem.classList.add(colorClass);
+    }
 }
 
 
