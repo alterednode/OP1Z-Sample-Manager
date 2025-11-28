@@ -87,15 +87,26 @@ def sanitize_and_validate_path(allowed_base, *path_components):
         if not component:
             return False, None, "Path component cannot be empty"
 
-        # Use werkzeug's secure_filename to strip dangerous characters
-        sanitized = werkzeug.utils.secure_filename(str(component))
+        component_str = str(component)
+
+        # EXPLICIT PRE-CHECKS (required by security scanner)
+        # Reject path traversal sequences BEFORE any processing
+        if '..' in component_str:
+            return False, None, "Path component cannot contain '..'"
+
+        # Reject directory separators BEFORE any processing
+        if '/' in component_str or '\\' in component_str or os.sep in component_str:
+            return False, None, "Path component cannot contain directory separators"
+
+        # Use werkzeug's secure_filename to strip remaining dangerous characters
+        sanitized = werkzeug.utils.secure_filename(component_str)
 
         if not sanitized:
             return False, None, f"Invalid path component: '{component}'"
 
-        # Ensure no path separators remain (defense in depth)
-        if os.sep in sanitized or '/' in sanitized or '\\' in sanitized:
-            return False, None, "Path component cannot contain separators"
+        # Defense in depth: verify no dangerous patterns after sanitization
+        if '..' in sanitized or '/' in sanitized or '\\' in sanitized:
+            return False, None, "Invalid path component after sanitization"
 
         sanitized_components.append(sanitized)
 
@@ -129,7 +140,11 @@ def validate_full_path(full_path, allowed_base):
     if not full_path:
         return False, None, "Path cannot be empty"
 
-    # Normalize to resolve any ../ sequences
+    # EXPLICIT PRE-CHECK: Reject path traversal attempts BEFORE any normalization
+    if '..' in full_path:
+        return False, None, "Path cannot contain '..'"
+
+    # Normalize to resolve any remaining sequences
     normalized_path = os.path.normpath(os.path.abspath(full_path))
     normalized_base = os.path.normpath(os.path.abspath(allowed_base))
 
