@@ -907,7 +907,7 @@ def rename_op1_subdirectory():
 
     try:
         os.rename(safe_old_path, safe_new_path)
-        return {"status": "renamed", "new_path": f"{parent}/{new_name}"}, 200
+        return {"status": "renamed", "new_path": f"{parent}/{html.escape(new_name)}"}, 200
     except Exception as e:
         current_app.logger.error(f"Error renaming OP-1 subdirectory: {e}")
         return {"error": "Failed to rename folder"}, 500
