@@ -3,9 +3,11 @@ import subprocess
 import uuid
 import html
 import werkzeug.utils
-from flask import Blueprint, request, jsonify, current_app
-from config import get_config_setting
-from sample_converter import convert_audio_file, UPLOAD_FOLDER
+import shutil
+from flask import Blueprint, request, jsonify, current_app, send_file
+from .config import get_config_setting
+from .sample_converter import convert_audio_file, UPLOAD_FOLDER
+from .utils import get_unique_filepath
 
 # Create Blueprint
 sample_manager_bp = Blueprint('sample_manager', __name__)
@@ -368,11 +370,7 @@ def upload_sample():
 
     # OP-1: Avoid overwriting by adding counter
     if not overwrite_existing:
-        counter = 1
-        while os.path.exists(final_path):
-            final_filename = f"{base_name}_{counter}{file_extension}"
-            final_path = os.path.join(safe_target_dir, final_filename)
-            counter += 1
+        final_path = get_unique_filepath(final_path)
 
     temp_path = None
 
@@ -792,11 +790,7 @@ def upload_op1_folder():
         final_path = os.path.join(safe_target_dir, final_filename)
 
         # Avoid overwriting
-        counter = 1
-        while os.path.exists(final_path):
-            final_filename = f"{base_name}_{counter}.aif"
-            final_path = os.path.join(safe_target_dir, final_filename)
-            counter += 1
+        final_path = get_unique_filepath(final_path)
 
         temp_path = None
 
@@ -943,7 +937,6 @@ def delete_op1_subdirectory():
         return {"error": "Folder does not exist"}, 404
 
     try:
-        import shutil
         shutil.rmtree(safe_path)
         return {"status": "deleted"}, 200
     except Exception as e:

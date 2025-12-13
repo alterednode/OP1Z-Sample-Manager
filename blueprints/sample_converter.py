@@ -3,7 +3,7 @@ import sys
 import subprocess
 import uuid
 from flask import Blueprint, request, jsonify, current_app
-from config import get_config_setting
+from .config import get_config_setting
 
 # Create Blueprint
 sample_converter_bp = Blueprint('sample_converter', __name__)

@@ -2,10 +2,11 @@ import sys
 import webbrowser
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
-from config import load_config, run_all_config_tasks, get_config_setting, set_config_setting, config_bp
-from sample_converter import sample_converter_bp
-from sample_manager import sample_manager_bp
-from dialogs import dialog_bp
+from blueprints.config import load_config, run_all_config_tasks, get_config_setting, set_config_setting, config_bp
+from blueprints.sample_converter import sample_converter_bp
+from blueprints.sample_manager import sample_manager_bp
+from blueprints.tape_export import tape_export_bp
+from blueprints.dialogs import dialog_bp
 
 # setup
 app = Flask(__name__)
@@ -14,6 +15,7 @@ CORS(app)  # Enable CORS for all routes
 # Register blueprints
 app.register_blueprint(sample_converter_bp)
 app.register_blueprint(sample_manager_bp)
+app.register_blueprint(tape_export_bp)
 app.register_blueprint(config_bp)
 app.register_blueprint(dialog_bp)
 
