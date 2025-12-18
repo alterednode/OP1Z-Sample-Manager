@@ -62,14 +62,50 @@ return output
         return jsonify({"error": "An internal error has occurred."}), 500
 
 
+def run_dialog_windows(mode):
+    """Use tkinter for Windows file dialogs."""
+    import tkinter as tk
+    from tkinter import filedialog
+
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+    root.attributes('-topmost', True)  # Bring dialog to front
+
+    try:
+        if mode == "folder":
+            path = filedialog.askdirectory(title="Select a folder")
+        elif mode == "file":
+            path = filedialog.askopenfilename(title="Select a file")
+        elif mode == "multi":
+            paths = filedialog.askopenfilenames(title="Select files")
+            root.destroy()
+            if paths:
+                return jsonify({"paths": list(paths)})
+            return jsonify({"error": "No files selected"}), 400
+        elif mode == "save":
+            path = filedialog.asksaveasfilename(title="Save as")
+        else:
+            root.destroy()
+            return jsonify({"error": f"Unknown mode: {mode}"}), 400
+
+        root.destroy()
+        if path:
+            return jsonify({"path": path})
+        return jsonify({"error": "No selection made"}), 400
+    except Exception as e:
+        root.destroy()
+        raise e
+
+
 def run_dialog(mode):
     """Run a file/folder selection dialog."""
     try:
         if sys.platform == 'darwin':
             return run_dialog_macos(mode)
+        elif sys.platform == 'win32':
+            return run_dialog_windows(mode)
         else:
-            # Fallback for non-macOS (would need different implementation)
-            return jsonify({"error": "File dialogs not supported on this platform in bundled app"}), 501
+            return jsonify({"error": "File dialogs not supported on this platform"}), 501
     except Exception as e:
         current_app.logger.error("Exception in run_dialog: %s", e, exc_info=True)
         return jsonify({"error": "An internal error has occurred."}), 500
