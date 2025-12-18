@@ -18,15 +18,13 @@
 <hr>
 
 <!-- FFmpeg Path -->
-
 <div id="ffmpeg-settings">
 <div>If on Windows, set this to location of your ffmpeg.exe file.</div>
-<button onclick="openPathPicker('/get-user-file-path', 'ffmpeg-path-holder', 'ffmpeg-info', 'FFMPEG_PATH', true)"class="btn btn-warning" >
+<input id="ffmpeg-path-holder" placeholder="ffmpeg file path goes here" style="min-width: 200px;"
+       onblur="setConfigPath('FFMPEG_PATH', 'ffmpeg-path-holder', 'ffmpeg-info')" />
+<button onclick="openPathPicker('/get-user-file-path', 'ffmpeg-path-holder', 'ffmpeg-info', 'FFMPEG_PATH', true)" class="btn btn-warning">
   Open File Browser
 </button>
-<input id="ffmpeg-path-holder" placeholder="ffmpeg file path goes here" style="min-width: 200px;" />
-<button onclick="setConfigPath('FFMPEG_PATH', 'ffmpeg-path-holder', 'ffmpeg-info')" class="btn btn-primary">Set</button>
-<button onclick="removeConfigPath('FFMPEG_PATH', 'ffmpeg-path-holder', 'ffmpeg-info')" class="btn btn-danger">Clear</button>
 <p id="ffmpeg-info"></p>
 
 <hr>
