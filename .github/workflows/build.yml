@@ -46,8 +46,10 @@ jobs:
           ls -la dist/
           echo "=== Size breakdown ==="
           du -sh dist/*
-          echo "=== Largest files ==="
-          find "dist/OP-Z Sample Manager.app" -type f -exec du -h {} \; 2>/dev/null | sort -hr | head -10
+          # Remove COLLECT folder, keep only .app
+          rm -rf "dist/OP-Z Sample Manager"
+          echo "=== After cleanup ==="
+          du -sh dist/*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
