@@ -61,10 +61,11 @@ exe = EXE(
     upx=True,
     console=False,  # No console window
     disable_windowed_traceback=False,
-    argv_emulation=True,
+    argv_emulation=sys.platform == 'darwin',  # macOS only
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='static/favicon.ico' if sys.platform == 'win32' else None,
 )
 
 coll = COLLECT(
