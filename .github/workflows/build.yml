@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build-macos:
-    runs-on: macos-latest
+    runs-on: macos-14  # arm64 runner for smaller builds
     steps:
       - uses: actions/checkout@v4
 
@@ -23,32 +23,24 @@ jobs:
           python-version: '3.13'
 
       - name: Install dependencies
+        env:
+          ARCHFLAGS: "-arch arm64"
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Debug environment
-        run: |
-          echo "=== Architecture ==="
-          uname -m
-          echo "=== PyQt wheel info ==="
-          pip show PyQt5-Qt5 | grep -E "^(Name|Version)"
-          echo "=== Check binary architecture ==="
-          QTCORE=$(python -c "import PyQt5; print(PyQt5.__path__[0])")/Qt5/lib/QtCore.framework/Versions/5/QtCore
-          lipo -info "$QTCORE" 2>/dev/null || echo "Cannot check"
-
       - name: Build with PyInstaller
         run: pyinstaller opz-sample-manager.spec
 
-      - name: Debug build output
+      - name: Sign app (ad-hoc)
+        run: codesign --force --deep -s - "dist/OP-Z Sample Manager.app"
+
+      - name: Prepare artifacts
         run: |
-          echo "=== dist/ contents ==="
-          ls -la dist/
-          echo "=== Size breakdown ==="
-          du -sh dist/*
           # Remove COLLECT folder, keep only .app
           rm -rf "dist/OP-Z Sample Manager"
-          echo "=== After cleanup ==="
+          # Show what we're uploading
+          echo "=== Final dist/ contents ==="
           du -sh dist/*
 
       - name: Upload artifact
@@ -62,6 +54,8 @@ jobs:
         run: |
           cd dist
           zip -r "OP-Z-Sample-Manager-macOS.zip" "OP-Z Sample Manager.app"
+          echo "=== ZIP size ==="
+          du -sh *.zip
 
       - name: Upload Release Asset
         if: startsWith(github.ref, 'refs/tags/')
