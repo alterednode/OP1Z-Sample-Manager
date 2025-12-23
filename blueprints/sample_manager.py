@@ -5,7 +5,7 @@ import html
 import werkzeug.utils
 import shutil
 from flask import Blueprint, request, jsonify, current_app, send_file
-from .config import get_config_setting
+from .config import get_config_setting, get_device_mount_path
 from .sample_converter import convert_audio_file, UPLOAD_FOLDER
 from .utils import get_unique_filepath
 
@@ -66,8 +66,8 @@ def get_device_config(device=None):
     if device is None:
         device = get_config_setting("SELECTED_DEVICE")
     if device == "op1":
-        return get_config_setting("OP1_MOUNT_PATH"), "OP-1"
-    return get_config_setting("OPZ_MOUNT_PATH"), "OP-Z"
+        return get_device_mount_path("op1"), "OP-1"
+    return get_device_mount_path("opz"), "OP-Z"
 
 
 def sanitize_and_validate_path(allowed_base, *path_components):
@@ -943,4 +943,121 @@ def delete_op1_subdirectory():
         current_app.logger.error(f"Error deleting OP-1 subdirectory: {e}")
         return {"error": "Failed to delete folder"}, 500
 
+
+@sample_manager_bp.route("/preview-sample")
+def preview_sample():
+    """
+    Serve an audio sample file for preview playback.
+    Converts AIFF files to WAV for browser compatibility.
+    Validates that the path is within an allowed device mount directory.
+    """
+    import tempfile
+
+    path = request.args.get("path")
+
+    if not path:
+        return {"error": "Missing path parameter"}, 400
+
+    # Get both device mount paths
+    opz_mount = get_config_setting("OPZ_MOUNT_PATH")
+    op1_mount = get_config_setting("OP1_MOUNT_PATH")
+
+    # Validate path is within one of the device mount directories
+    allowed_base = None
+    if opz_mount:
+        is_valid, normalized_path, _ = validate_full_path(path, opz_mount)
+        if is_valid:
+            allowed_base = opz_mount
+            path = normalized_path
+
+    if not allowed_base and op1_mount:
+        is_valid, normalized_path, _ = validate_full_path(path, op1_mount)
+        if is_valid:
+            allowed_base = op1_mount
+            path = normalized_path
+
+    if not allowed_base:
+        return {"error": "Invalid path"}, 403
+
+    # Check file exists
+    if not os.path.isfile(path):
+        return {"error": "File not found"}, 404
+
+    ext = os.path.splitext(path)[1].lower()
+
+    # AIFF files need conversion to WAV for browser compatibility
+    if ext in [".aif", ".aiff"]:
+        temp_path = None
+        try:
+            ffmpeg_path = get_config_setting("FFMPEG_PATH", "ffmpeg")
+
+            # Create a temporary WAV file
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+                temp_path = tmp.name
+
+            # Convert AIFF to WAV using ffmpeg
+            ffmpeg_cmd = [
+                ffmpeg_path,
+                "-y",  # overwrite output
+                "-i", path,
+                "-acodec", "pcm_s16le",  # 16-bit PCM
+                "-ar", "44100",  # 44.1kHz sample rate
+                temp_path
+            ]
+
+            result = subprocess.run(
+                ffmpeg_cmd,
+                capture_output=True,
+                timeout=10  # 10 second timeout
+            )
+
+            if result.returncode != 0:
+                current_app.logger.error(f"FFmpeg conversion failed: {result.stderr.decode()}")
+                if temp_path and os.path.exists(temp_path):
+                    os.remove(temp_path)
+                return {"error": "Audio conversion failed"}, 500
+
+            # Serve the converted file and clean up after
+            response = send_file(
+                temp_path,
+                mimetype="audio/wav",
+                as_attachment=False
+            )
+
+            # Clean up temp file after response is sent
+            @response.call_on_close
+            def cleanup():
+                try:
+                    if temp_path and os.path.exists(temp_path):
+                        os.remove(temp_path)
+                except Exception:
+                    pass
+
+            return response
+
+        except subprocess.TimeoutExpired:
+            current_app.logger.error("FFmpeg conversion timed out")
+            if temp_path and os.path.exists(temp_path):
+                os.remove(temp_path)
+            return {"error": "Audio conversion timed out"}, 500
+        except Exception as e:
+            current_app.logger.error(f"Error converting sample for preview: {e}")
+            if temp_path and os.path.exists(temp_path):
+                os.remove(temp_path)
+            return {"error": "Failed to convert audio"}, 500
+
+    # For other formats, serve directly
+    mime_types = {
+        ".wav": "audio/wav",
+        ".mp3": "audio/mpeg",
+        ".ogg": "audio/ogg",
+        ".flac": "audio/flac",
+    }
+    mimetype = mime_types.get(ext, "application/octet-stream")
+
+    try:
+        return send_file(path, mimetype=mimetype)
+    except Exception as e:
+        current_app.logger.error(f"Error serving sample preview: {e}")
+        return {"error": "Failed to serve file"}, 500
 
