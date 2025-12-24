@@ -209,7 +209,7 @@ def validate_device_folder_structure(device, mount_path):
     device_name = "OP-1" if device == "op1" else "OP-Z"
 
     if not mount_path:
-        return False, f"{device_name} mount path not set. Please select your {device_name} mount directory in Utility Settings."
+        return False, f"Please connect your {device_name} and try again. If it isn't being detected, go to Utility Settings, enable developer mode, and select the device path."
 
     if not os.path.exists(mount_path):
         return False, f"{device_name} mount path does not exist: {mount_path}"

@@ -306,7 +306,7 @@ async function fetchOpzSamples() {
         const fileList = document.getElementById("opz-file-list");
 
         if (data.validation_error) {
-            errorMessage.innerHTML = data.validation_error + ' <a href="/utilitysettings" class="btn btn-danger">Go to Utility Settings</a>';
+            errorMessage.innerHTML = data.validation_error;
             errorContainer.hidden = false;
             if (storageInfo) storageInfo.hidden = true;
             if (fileList) fileList.hidden = true;
@@ -455,7 +455,7 @@ async function fetchOp1Samples() {
         const fileList = document.getElementById("op1-file-list");
 
         if (op1Data.validation_error) {
-            errorMessage.innerHTML = op1Data.validation_error + ' <a href="/utilitysettings" class="btn btn-danger">Go to Utility Settings</a>';
+            errorMessage.innerHTML = op1Data.validation_error;
             errorContainer.hidden = false;
             if (storageInfo) storageInfo.hidden = true;
             if (fileList) fileList.hidden = true;

@@ -49,12 +49,32 @@ html, body {
 }
 
 .error-container {
-    background-color: var(--fourth-color);
-    padding: 20px;
+    background-color: rgba(204, 12, 47, 0.1);
+    border: 1px solid var(--fourth-color);
+    color: var(--fourth-color);
+    padding: 15px 20px;
     margin: auto;
     margin-top: 20px;
     margin-bottom: 20px;
-    border-radius: 10px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.error-container p {
+    margin: 0;
+    font-weight: 500;
+}
+
+.error-container a {
+    color: var(--fourth-color);
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.error-container a:hover {
+    text-decoration: none;
 }
 
 .info-container {
