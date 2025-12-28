@@ -1,9 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import sys
+import os
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
+
+# Platform-specific FFMPEG binary
+if sys.platform == 'darwin':
+    ffmpeg_binary = [('bin/ffmpeg', 'bin')]
+else:
+    ffmpeg_binary = [('bin/ffmpeg.exe', 'bin')]
 
 # Collect all Flask and Jinja2 data files
 datas = [
@@ -59,7 +66,7 @@ excludes = [
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=[],
+    binaries=ffmpeg_binary,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],

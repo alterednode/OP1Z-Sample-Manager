@@ -223,23 +223,12 @@ function updateManualPathsVisibility(isEnabled) {
 
 
 window.onload = function () {
-  loadConfigPath("FFMPEG_PATH", "ffmpeg-path-holder");
   loadConfigPath("OPZ_MOUNT_PATH", "opz-path-holder");
   loadConfigPath("OP1_MOUNT_PATH", "op1-path-holder");
   loadConfigPath("WORKING_DIRECTORY", "working-dir-holder");
   loadLoggerLevel();
   loadDeveloperMode();
 
-  // only show ffmpeg settings if the OS is Windows
-  (async function () {
-    const OS = await loadConfig("OS");
-    if (OS !== "windows") {
-      console.log("Hiding ffmpeg settings because OS is not Windows.");
-      document.getElementById("ffmpeg-settings").style.display = 'none';
-    }
-  })();
-
-  enableAutoResizeInput(document.getElementById("ffmpeg-path-holder"));
   enableAutoResizeInput(document.getElementById("opz-path-holder"));
   enableAutoResizeInput(document.getElementById("op1-path-holder"));
   enableAutoResizeInput(document.getElementById("working-dir-holder"));

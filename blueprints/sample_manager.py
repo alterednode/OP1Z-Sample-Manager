@@ -5,9 +5,9 @@ import html
 import werkzeug.utils
 import shutil
 from flask import Blueprint, request, jsonify, current_app, send_file
-from .config import get_config_setting, get_device_mount_path
+from .config import get_device_mount_path
 from .sample_converter import convert_audio_file, UPLOAD_FOLDER
-from .utils import get_unique_filepath
+from .utils import get_unique_filepath, get_ffmpeg_path
 
 # Create Blueprint
 sample_manager_bp = Blueprint('sample_manager', __name__)
@@ -989,7 +989,7 @@ def preview_sample():
     if ext in [".aif", ".aiff"]:
         temp_path = None
         try:
-            ffmpeg_path = get_config_setting("FFMPEG_PATH", "ffmpeg")
+            ffmpeg_path = get_ffmpeg_path()
 
             # Create a temporary WAV file
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:

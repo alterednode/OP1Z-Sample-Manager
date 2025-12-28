@@ -9,7 +9,7 @@ import subprocess
 import shutil
 import tempfile
 from flask import Blueprint, request, jsonify, current_app, send_file
-from .config import get_config_setting, get_device_mount_path
+from .config import get_device_mount_path
 from .utils import (
     TAPE_TRACK_IDS,
     ALBUM_SIDE_IDS,
@@ -21,6 +21,7 @@ from .utils import (
     EXPORT_TAPE_PREFIX,
     EXPORT_ALBUM_PREFIX,
     get_unique_filepath,
+    get_ffmpeg_path,
 )
 
 # Create Blueprint
@@ -37,31 +38,6 @@ def get_op1_mount_path():
     if not path or not os.path.exists(path):
         return None
     return path
-
-
-def find_ffmpeg():
-    """Find ffmpeg, checking common installation paths."""
-    # Check config first
-    configured = get_config_setting("FFMPEG_PATH")
-    if configured and os.path.isfile(configured):
-        return configured
-
-    # Common locations on macOS/Linux
-    common_paths = [
-        "/opt/homebrew/bin/ffmpeg",  # Apple Silicon Homebrew
-        "/usr/local/bin/ffmpeg",      # Intel Homebrew
-        "/usr/bin/ffmpeg",            # System
-    ]
-
-    for path in common_paths:
-        if os.path.isfile(path):
-            return path
-
-    # Fallback to PATH (works when running from terminal)
-    if shutil.which("ffmpeg"):
-        return "ffmpeg"
-
-    return None
 
 
 def get_source_path(track_type, track_id, mount_path):
@@ -87,17 +63,9 @@ def needs_conversion(source_path, cache_path):
     return os.path.getmtime(source_path) > os.path.getmtime(cache_path)
 
 
-class FFmpegNotFoundError(Exception):
-    """Raised when FFmpeg is not found on the system."""
-    pass
-
-
 def convert_to_wav(source_path, cache_path):
     """Convert AIFF to WAV using FFmpeg."""
-    ffmpeg_path = find_ffmpeg()
-
-    if not ffmpeg_path:
-        raise FFmpegNotFoundError("FFmpeg not found. Please install FFmpeg to use this feature.")
+    ffmpeg_path = get_ffmpeg_path()
 
     subprocess.run(
         [ffmpeg_path, "-y", "-i", source_path, cache_path],
@@ -220,9 +188,6 @@ def prepare_audio():
         try:
             convert_to_wav(source_path, cache_path)
             converted.append(f"{track_type}_{track_id}")
-        except FFmpegNotFoundError as e:
-            current_app.logger.error(f"FFmpeg not found: {e}")
-            return jsonify({"error": str(e)}), 500
         except subprocess.CalledProcessError as e:
             error_msg = e.stderr.decode() if e.stderr else str(e)
             current_app.logger.error(f"FFmpeg error converting {track_type}_{track_id}: {error_msg}")
@@ -269,9 +234,6 @@ def serve_tape_audio(track_type, track_id):
     if not os.path.exists(cache_path):
         try:
             convert_to_wav(source_path, cache_path)
-        except FFmpegNotFoundError as e:
-            current_app.logger.error(f"FFmpeg not found: {e}")
-            return jsonify({"error": str(e)}), 500
         except subprocess.CalledProcessError as e:
             current_app.logger.error(f"FFmpeg conversion error: {e.stderr.decode() if e.stderr else str(e)}")
             return jsonify({"error": "Audio conversion failed"}), 500

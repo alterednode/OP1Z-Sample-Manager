@@ -1,5 +1,6 @@
 """Shared utilities for blueprint modules."""
 import os
+import sys
 
 
 # OP-1 Tape Constants
@@ -33,3 +34,23 @@ def get_unique_filepath(base_path: str) -> str:
     while os.path.exists(f"{base}_{counter}{ext}"):
         counter += 1
     return f"{base}_{counter}{ext}"
+
+
+def get_ffmpeg_path():
+    """Get the path to the FFMPEG executable.
+
+    When running as a bundled app (frozen), returns the path to the bundled
+    FFMPEG binary. In development mode, returns 'ffmpeg' to use system PATH.
+
+    Returns:
+        str: Path to FFMPEG executable
+    """
+    if getattr(sys, 'frozen', False):
+        # Running as bundled app
+        if sys.platform == 'darwin':
+            return os.path.join(sys._MEIPASS, 'bin', 'ffmpeg')
+        else:  # Windows
+            return os.path.join(sys._MEIPASS, 'bin', 'ffmpeg.exe')
+    else:
+        # Development mode - use system ffmpeg
+        return 'ffmpeg'

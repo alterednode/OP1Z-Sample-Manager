@@ -83,6 +83,10 @@ def utilitysettings():
 def backup():
     return render_template("backup.html")
 
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
 @app.route("/open-external-link")
 def open_external_link():
     url = request.args.get("url")
