@@ -56,38 +56,56 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-exe = EXE(
-    pyz,
-    a.scripts,
-    [],
-    exclude_binaries=True,
-    name='OP-Z Sample Manager',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=True,  # Strip debug symbols
-    upx=True,
-    console=False,  # No console window
-    disable_windowed_traceback=False,
-    argv_emulation=sys.platform == 'darwin',  # macOS only
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-    icon='static/favicon.ico' if sys.platform == 'win32' else None,
-)
+if sys.platform == 'win32':
+    # Windows: Single-file executable (everything bundled into one .exe)
+    exe = EXE(
+        pyz,
+        a.scripts,
+        a.binaries,
+        a.zipfiles,
+        a.datas,
+        [],
+        name='OP-Z Sample Manager',
+        debug=False,
+        bootloader_ignore_signals=False,
+        strip=True,
+        upx=True,
+        console=False,
+        disable_windowed_traceback=False,
+        target_arch=None,
+        icon='static/favicon.ico',
+    )
+else:
+    # macOS: Folder mode, then wrap in .app bundle
+    exe = EXE(
+        pyz,
+        a.scripts,
+        [],
+        exclude_binaries=True,
+        name='OP-Z Sample Manager',
+        debug=False,
+        bootloader_ignore_signals=False,
+        strip=True,
+        upx=True,
+        console=False,
+        disable_windowed_traceback=False,
+        argv_emulation=True,
+        target_arch=None,
+        codesign_identity=None,
+        entitlements_file=None,
+    )
 
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=True,  # Strip debug symbols
-    upx=True,
-    upx_exclude=[],
-    name='OP-Z Sample Manager',
-)
+    coll = COLLECT(
+        exe,
+        a.binaries,
+        a.zipfiles,
+        a.datas,
+        strip=True,
+        upx=True,
+        upx_exclude=[],
+        name='OP-Z Sample Manager',
+    )
 
-# macOS app bundle
-if sys.platform == 'darwin':
     app = BUNDLE(
         coll,
         name='OP-Z Sample Manager.app',
