@@ -1,9 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import sys
+import os
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
+
+# Platform-specific FFMPEG binary
+if sys.platform == 'darwin':
+    ffmpeg_binary = [('bin/ffmpeg', 'bin')]
+else:
+    ffmpeg_binary = [('bin/ffmpeg.exe', 'bin')]
 
 # Collect all Flask and Jinja2 data files
 datas = [
@@ -31,41 +38,16 @@ hiddenimports += [
     'blueprints.backup',
 ]
 
-# Exclude unused PyQt5 modules to reduce size
-excludes = [
-    'PyQt5.QtBluetooth',
-    'PyQt5.QtDBus',
-    'PyQt5.QtDesigner',
-    'PyQt5.QtHelp',
-    'PyQt5.QtLocation',
-    'PyQt5.QtMultimedia',
-    'PyQt5.QtMultimediaWidgets',
-    'PyQt5.QtNfc',
-    'PyQt5.QtOpenGL',
-    'PyQt5.QtPositioning',
-    'PyQt5.QtQml',
-    'PyQt5.QtQuick',
-    'PyQt5.QtQuickWidgets',
-    'PyQt5.QtRemoteObjects',
-    'PyQt5.QtSensors',
-    'PyQt5.QtSerialPort',
-    'PyQt5.QtSql',
-    'PyQt5.QtSvg',
-    'PyQt5.QtTest',
-    'PyQt5.QtXml',
-    'PyQt5.QtXmlPatterns',
-]
-
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=[],
+    binaries=ffmpeg_binary,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=excludes,
+    excludes=[],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,
@@ -74,38 +56,56 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-exe = EXE(
-    pyz,
-    a.scripts,
-    [],
-    exclude_binaries=True,
-    name='OP-Z Sample Manager',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=True,  # Strip debug symbols
-    upx=True,
-    console=False,  # No console window
-    disable_windowed_traceback=False,
-    argv_emulation=sys.platform == 'darwin',  # macOS only
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-    icon='static/favicon.ico' if sys.platform == 'win32' else None,
-)
+if sys.platform == 'win32':
+    # Windows: Single-file executable (everything bundled into one .exe)
+    exe = EXE(
+        pyz,
+        a.scripts,
+        a.binaries,
+        a.zipfiles,
+        a.datas,
+        [],
+        name='OP-Z Sample Manager',
+        debug=False,
+        bootloader_ignore_signals=False,
+        strip=True,
+        upx=True,
+        console=False,
+        disable_windowed_traceback=False,
+        target_arch=None,
+        icon='static/favicon.ico',
+    )
+else:
+    # macOS: Folder mode, then wrap in .app bundle
+    exe = EXE(
+        pyz,
+        a.scripts,
+        [],
+        exclude_binaries=True,
+        name='OP-Z Sample Manager',
+        debug=False,
+        bootloader_ignore_signals=False,
+        strip=True,
+        upx=True,
+        console=False,
+        disable_windowed_traceback=False,
+        argv_emulation=True,
+        target_arch=None,
+        codesign_identity=None,
+        entitlements_file=None,
+    )
 
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=True,  # Strip debug symbols
-    upx=True,
-    upx_exclude=[],
-    name='OP-Z Sample Manager',
-)
+    coll = COLLECT(
+        exe,
+        a.binaries,
+        a.zipfiles,
+        a.datas,
+        strip=True,
+        upx=True,
+        upx_exclude=[],
+        name='OP-Z Sample Manager',
+    )
 
-# macOS app bundle
-if sys.platform == 'darwin':
     app = BUNDLE(
         coll,
         name='OP-Z Sample Manager.app',

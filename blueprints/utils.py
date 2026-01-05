@@ -1,5 +1,6 @@
 """Shared utilities for blueprint modules."""
 import os
+import sys
 
 
 # OP-1 Tape Constants
@@ -33,3 +34,45 @@ def get_unique_filepath(base_path: str) -> str:
     while os.path.exists(f"{base}_{counter}{ext}"):
         counter += 1
     return f"{base}_{counter}{ext}"
+
+
+def get_ffmpeg_path():
+    """Get the path to the FFMPEG executable.
+
+    When running as a bundled app (frozen), returns the path to the bundled
+    FFMPEG binary. In development mode, returns 'ffmpeg' to use system PATH.
+
+    Returns:
+        str: Path to FFMPEG executable
+    """
+    if getattr(sys, 'frozen', False):
+        # Running as bundled app
+        if sys.platform == 'darwin':
+            return os.path.join(sys._MEIPASS, 'bin', 'ffmpeg')
+        else:  # Windows
+            return os.path.join(sys._MEIPASS, 'bin', 'ffmpeg.exe')
+    else:
+        # Development mode - use system ffmpeg
+        return 'ffmpeg'
+
+
+def run_ffmpeg(args, **kwargs):
+    """Run FFMPEG with the correct path and platform-specific settings.
+
+    Args:
+        args: List of arguments to pass to FFMPEG (without the ffmpeg command itself)
+        **kwargs: Additional arguments to pass to subprocess.run()
+
+    Returns:
+        subprocess.CompletedProcess result
+    """
+    import subprocess
+
+    ffmpeg_path = get_ffmpeg_path()
+    cmd = [ffmpeg_path] + args
+
+    # Hide console window on Windows
+    if sys.platform == 'win32':
+        kwargs.setdefault('creationflags', subprocess.CREATE_NO_WINDOW)
+
+    return subprocess.run(cmd, **kwargs)

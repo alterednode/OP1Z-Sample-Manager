@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% from 'macros.html' import nav_button %}
+
+{% block stylesheets %}
+<style>
+    .about-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .about-section {
+        margin-bottom: 2rem;
+    }
+    .about-section h2 {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+    }
+    .credits-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .credits-list li {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .credits-list li:last-child {
+        border-bottom: none;
+    }
+    .credits-list a {
+        color: var(--link-color);
+        text-decoration: none;
+    }
+    .credits-list a:hover {
+        text-decoration: underline;
+    }
+    .github-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: #333;
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background 0.2s;
+    }
+    .github-button:hover {
+        background: #555;
+        text-decoration: none;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block title %}
+<title>About - OP-Z Sample Manager</title>
+{% endblock %}
+
+{% block main %}
+<h1>About</h1>
+
+<div class="header-row">
+    {{ nav_button('/', 'Home', icon='home') }}
+</div>
+
+<hr>
+
+<div class="about-container">
+    <div class="about-section">
+        <h2>OP-Z Sample Manager</h2>
+        <p>A utility for managing samples, projects, and configurations on Teenage Engineering OP-Z and OP-1 devices.</p>
+    </div>
+
+    <div class="about-section">
+        <h2>Third-Party Software</h2>
+        <ul class="credits-list">
+            <li>
+                <strong>FFmpeg</strong><br>
+                This software uses libraries from the FFmpeg project under the LGPLv2.1.<br>
+                <a href="https://ffmpeg.org/" target="_blank" rel="noopener noreferrer">https://ffmpeg.org/</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="about-section">
+        <h2>Source Code</h2>
+        <p>
+            <a href="https://github.com/romangarms/opz-sample-manager" target="_blank" rel="noopener noreferrer" class="github-button">
+                <i data-lucide="github"></i>
+                View on GitHub
+            </a>
+        </p>
+    </div>
+</div>
+{% endblock %}
