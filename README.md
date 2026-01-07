@@ -6,7 +6,7 @@ This is a Flask app built with PyQt5 to handle everything with samples on the OP
 
 
 ### Run app using:
-1) Have Python 3.9 - 3.14 installed. (3.9 is the lowest version that is supported in all of our dependencies, but 3.14 is the version that is being used for testing and development.
+1) Have Python 3.9 - 3.14 installed. (3.13/3.14 suggested)
 2) Install requirements in ```requirements.txt```.
 3) ```python main.py``` **or** build with ```python build.py```, and run the created executable under ```dist/```.
 
