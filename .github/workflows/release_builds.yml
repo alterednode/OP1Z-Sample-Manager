@@ -63,10 +63,15 @@ jobs:
             exit 1
           fi
           cd dist
-          if command -v 7z >/dev/null 2>&1; then
-            7z a "../artifacts/${ARTIFACT}.zip" .
+          if [ "${{ matrix.platform }}" = "macos" ]; then
+            TARGET="OP-Z Sample Manager.app"
           else
-            zip -r "../artifacts/${ARTIFACT}.zip" .
+            TARGET="."
+          fi
+          if command -v 7z >/dev/null 2>&1; then
+            7z a "../artifacts/${ARTIFACT}.zip" "$TARGET"
+          else
+            zip -r "../artifacts/${ARTIFACT}.zip" "$TARGET"
           fi
           cd ..
       - name: Upload build artifact
