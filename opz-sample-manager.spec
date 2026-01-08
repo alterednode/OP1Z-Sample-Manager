@@ -68,7 +68,7 @@ if sys.platform == 'win32':
         name='OP-Z Sample Manager',
         debug=False,
         bootloader_ignore_signals=False,
-        strip=False,
+        strip=True,
         upx=False,
         console=False,
         disable_windowed_traceback=False,

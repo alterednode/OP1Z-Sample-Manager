@@ -42,6 +42,8 @@ jobs:
             bin/ffmpeg.exe
           # Bump v1 -> v2 when changing the ffmpeg version/URL in build.py
           key: ffmpeg-v1-${{ runner.os }}
+          restore-keys: |
+            ffmpeg-v1-${{ runner.os }}
 
       - name: Install Python dependencies (all platforms)
         shell: bash
