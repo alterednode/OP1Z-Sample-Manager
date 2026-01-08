@@ -49,15 +49,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install UPX (Windows)
+      - name: Run pywin32 post-install (Windows only)
         if: matrix.platform == 'windows'
         shell: bash
-        run: choco install upx -y
-
-      - name: Install UPX (macOS)
-        if: matrix.platform == 'macos'
-        shell: bash
-        run: brew install upx
+        run: |
+          python -c "import sys; print(sys.executable)"
+          python Scripts/pywin32_postinstall.py -install || echo "pywin32_postinstall not found or failed"
 
       - name: Build (build.py)
         shell: bash
