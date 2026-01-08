@@ -43,13 +43,6 @@ jobs:
           # Bump v1 -> v2 when changing the ffmpeg version/URL in build.py
           key: ffmpeg-v1-${{ runner.os }}
 
-      - name: Install Visual C++ Redistributable (Windows only)
-        if: matrix.platform == 'windows'
-        shell: pwsh
-        run: |
-          # Install the latest Visual C++ Redistributable
-          choco install vcredist-all -y
-
       - name: Install Python dependencies (all platforms)
         shell: bash
         run: |
