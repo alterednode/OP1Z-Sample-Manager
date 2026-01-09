@@ -26,7 +26,7 @@ def get_config_dir():
 
 def get_config_path():
     """Get the full path to the config file."""
-    return os.path.join(get_config_dir(), 'op1z_sm_config.json')
+    return os.path.join(get_config_dir(), 'op-1z_sm_config.json')
 
 
 CONFIG_PATH = get_config_path()

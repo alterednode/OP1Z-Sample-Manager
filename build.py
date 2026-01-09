@@ -200,7 +200,7 @@ def clean_build():
 def run_pyinstaller():
     """Run PyInstaller with the spec file."""
     script_dir = get_script_dir()
-    spec_file = os.path.join(script_dir, "op1z-sample-manager.spec")
+    spec_file = os.path.join(script_dir, "op-1z-sample-manager.spec")
 
     print("Running PyInstaller...")
     result = subprocess.run(

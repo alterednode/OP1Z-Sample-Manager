@@ -11,7 +11,7 @@ from .utils import run_ffmpeg
 sample_converter_bp = Blueprint('sample_converter', __name__)
 
 # Constants
-UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), "op1z_sample_manager_uploads")
+UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), "op-1z_sample_manager_uploads")
 
 # Create upload directory
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)

@@ -46,7 +46,7 @@ jobs:
       - name: Package artifact
         shell: bash
         run: |
-          ARTIFACT="op1z-sample-manager-${{ matrix.platform }}-${{ github.ref_name }}"
+          ARTIFACT="op-1z-sample-manager-${{ matrix.platform }}-${{ github.ref_name }}"
           mkdir -p artifacts
           if [ ! -d "dist" ]; then
             echo "dist/ not found; build likely failed."
@@ -67,7 +67,7 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: op1z-sample-manager-${{ matrix.platform }}-${{ github.ref_name }}
+          name: op-1z-sample-manager-${{ matrix.platform }}-${{ github.ref_name }}
           path: artifacts/*.zip
 
   release:

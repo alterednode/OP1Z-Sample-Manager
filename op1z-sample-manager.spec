@@ -110,7 +110,7 @@ else:
         coll,
         name='OP-1Z Sample Manager.app',
         icon='static/favicon.png',
-        bundle_identifier='com.op1z.samplemanager',
+        bundle_identifier='com.op-1z.samplemanager',
         info_plist={
             'CFBundleName': 'OP-1Z Sample Manager',
             'CFBundleDisplayName': 'OP-1Z Sample Manager',
