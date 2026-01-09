@@ -206,9 +206,9 @@ body > .container {
 .tile-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: clamp(15px, 2vw, 30px);
     margin: 30px auto;
-    max-width: 800px;
+    width: clamp(400px, 60vw, 1200px);
 }
 
 /* Container for split tiles (two half-width tiles side by side) */
