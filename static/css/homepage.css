@@ -212,6 +212,8 @@ body > .container {
     font-style: italic;
     opacity: 1;
     color: var(--text-color);
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
 /* Main content area */
