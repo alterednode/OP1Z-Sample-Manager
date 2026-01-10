@@ -166,6 +166,22 @@ body > .container {
     background-color: var(--neutral-gray);
 }
 
+.status-indicator.scanning {
+    background-color: var(--third-color);
+    animation: pulse-scanning 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-scanning {
+    0%, 100% {
+        opacity: 0.4;
+        box-shadow: 0 0 2px var(--third-color);
+    }
+    50% {
+        opacity: 1;
+        box-shadow: 0 0 8px var(--third-color);
+    }
+}
+
 .device-name {
     font-weight: 600;
     font-size: 1rem;
