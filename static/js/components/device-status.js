@@ -14,11 +14,15 @@ const deviceStatus = {
         opz: { connected: false, mode: null, path: null },
         op1: { connected: false, mode: null, path: null }
     },
+    // Track last known connected state across page navigations (persisted in sessionStorage)
+    lastKnownState: { opz: false, op1: false },
 
     /**
      * Initialize SSE connection for device status updates
      */
     init: function() {
+        // Restore last known state from sessionStorage to avoid showing toast on page navigation
+        this.loadLastKnownState();
         this.connect();
 
         // Reconnect when page becomes visible again
@@ -32,6 +36,31 @@ const deviceStatus = {
         window.addEventListener('beforeunload', () => {
             this.disconnect();
         });
+    },
+
+    /**
+     * Load last known device state from sessionStorage
+     */
+    loadLastKnownState: function() {
+        try {
+            const stored = sessionStorage.getItem('deviceLastKnownState');
+            if (stored) {
+                this.lastKnownState = JSON.parse(stored);
+            }
+        } catch (e) {
+            console.warn('Failed to load device state from sessionStorage:', e);
+        }
+    },
+
+    /**
+     * Save current device state to sessionStorage
+     */
+    saveLastKnownState: function() {
+        try {
+            sessionStorage.setItem('deviceLastKnownState', JSON.stringify(this.lastKnownState));
+        } catch (e) {
+            console.warn('Failed to save device state to sessionStorage:', e);
+        }
     },
 
     /**
@@ -98,13 +127,19 @@ const deviceStatus = {
         // Update current state for click handling
         this.currentState[device] = { connected, mode, path };
 
-        // Track initial state to avoid duplicate toasts on first load
+        // Check if this is a genuine state change by comparing to persisted state
+        const wasConnected = this.lastKnownState[device];
+        const isNewConnection = connected && !wasConnected;
+        const isDisconnection = !connected && wasConnected;
+
+        // Track initial state for first-load logic (to know when both devices reported)
         if (this.isFirstLoad) {
             const prevState = this.initialDevices[device];
             this.initialDevices[device] = connected;
 
-            // Only show toast on first load if device is connected
-            if (prevState === null && connected) {
+            // Only show toast on first load if device is NEWLY connected
+            // (not already known from previous page navigation)
+            if (prevState === null && isNewConnection) {
                 this.showConnectToast(device, device_name, path, mode);
             }
 
@@ -113,6 +148,10 @@ const deviceStatus = {
                 this.isFirstLoad = false;
             }
 
+            // Update last known state and persist it
+            this.lastKnownState[device] = connected;
+            this.saveLastKnownState();
+
             // Update sidebar even on first load
             if (typeof updateDeviceSidebar === 'function') {
                 updateDeviceSidebar(device, connected, path, mode);
@@ -120,16 +159,22 @@ const deviceStatus = {
             return;
         }
 
-        // After first load, show toasts for status changes
-        if (connected) {
+        // After first load, show toasts for actual status changes
+        if (isNewConnection) {
             this.showConnectToast(device, device_name, path, mode);
-        } else if (usb_detected && !connected) {
-            // USB detected but mount path not found
-            this.showMountErrorToast(device_name);
-        } else {
-            // Fully disconnected
-            this.showDisconnectToast(device_name);
+        } else if (isDisconnection) {
+            if (usb_detected) {
+                // USB detected but mount path not found
+                this.showMountErrorToast(device_name);
+            } else {
+                // Fully disconnected
+                this.showDisconnectToast(device_name);
+            }
         }
+
+        // Update last known state and persist it
+        this.lastKnownState[device] = connected;
+        this.saveLastKnownState();
 
         // Update sidebar if on home page
         if (typeof updateDeviceSidebar === 'function') {
@@ -137,7 +182,7 @@ const deviceStatus = {
         }
 
         // Auto-expand sidebar when device connects
-        if (connected && typeof expandSidebar === 'function') {
+        if (isNewConnection && typeof expandSidebar === 'function') {
             expandSidebar();
         }
     },
