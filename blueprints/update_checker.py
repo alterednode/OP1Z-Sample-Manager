@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, current_app
 from urllib.error import URLError, HTTPError
 import requests
+from datetime import datetime, timedelta
 from .config import get_config_setting, set_config_setting
 
 
@@ -19,6 +20,8 @@ def display_update_notice():
     """
     Check for updates by fetching the latest version from GitHub and comparing it to the current version.
     Handles all logic for deciding whether to display an update notice.
+    
+    Will only show update notice once per hour (configurable via update_notice_cooldown_hours).
 
     Returns JSON with:
     - display_update_notice (bool): Whether to show the update notice.
@@ -36,14 +39,32 @@ def display_update_notice():
         response_data["github_version"] = "checking_disabled"
         return jsonify(response_data)
     
+    # Check if enough time has passed since last notification
+    last_shown = get_config_setting('update_notice_last_shown')
+    cooldown_seconds = get_config_setting('update_notice_cooldown_seconds', 3600)  # Default 1 hour
+    
+    if last_shown:
+        try:
+            last_shown_time = datetime.fromisoformat(last_shown)
+            time_since_last = datetime.now() - last_shown_time
+            if time_since_last < timedelta(seconds=cooldown_seconds):
+                # Too soon - don't show notice
+                return jsonify(response_data)
+        except (ValueError, TypeError):
+            # Invalid timestamp - proceed with check
+            pass
+    
     latest_tag = get_latest_tag()
     response_data["github_version"] = latest_tag
 
     ignored_version = get_config_setting('update_checker_ignored_version')
     if (ignored_version is not None) and (ignored_version == response_data["github_version"]):
         return jsonify(response_data)
+    
     if response_data["github_version"] != 'unknown' and response_data["github_version"] != APP_VERSION:
         response_data["display_update_notice"] = True
+        # Store the current time as the last shown time
+        set_config_setting('update_notice_last_shown', datetime.now().isoformat())
 
     return jsonify(response_data)
 
