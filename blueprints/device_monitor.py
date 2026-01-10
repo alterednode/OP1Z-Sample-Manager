@@ -27,6 +27,9 @@ OP1_PRODUCT_ID_OTHER = 4    # 0x0004 - Normal/MIDI mode (no disk access)
 USB_CLASS_STORAGE = "USBSTOR"  # Mass storage class
 USB_CLASS_MEDIA = "MEDIA"      # Audio/MIDI class (normal mode)
 
+# Files/folders that indicate upgrade mode (not normal disk mode)
+OPZ_UPGRADE_MODE_MARKERS = ["how_to_upgrade.txt", "systeminfo"]
+
 
 def normalize_usb_id(value):
     """Convert USB ID from any format (int, hex string, decimal string) to int.
@@ -132,40 +135,81 @@ def validate_device_folder_structure(device, mount_path):
     return True, None
 
 
+def check_opz_upgrade_mode(path):
+    """Check if an OP-Z mount path is in upgrade mode.
+
+    Upgrade mode is detected by the presence of how_to_upgrade.txt and/or
+    the systeminfo folder, which are present instead of the samplepacks folder.
+
+    Returns:
+        True if in upgrade mode, False otherwise
+    """
+    if not path or not os.path.exists(path):
+        return False
+
+    # Check for upgrade mode markers
+    for marker in OPZ_UPGRADE_MODE_MARKERS:
+        marker_path = os.path.join(path, marker)
+        if os.path.exists(marker_path):
+            return True
+
+    return False
+
+
 def find_device_mount_macos(device):
-    """Scan /Volumes for a valid OP-Z or OP-1 mount on macOS."""
+    """Scan /Volumes for a valid OP-Z or OP-1 mount on macOS.
+
+    Returns:
+        tuple: (path, mode) where mode is "storage" or "upgrade", or (None, None) if not found
+    """
     volumes_path = "/Volumes"
     if not os.path.exists(volumes_path):
-        return None
+        return None, None
 
     for volume in os.listdir(volumes_path):
         path = os.path.join(volumes_path, volume)
         if os.path.isdir(path):
+            # For OP-Z, check for upgrade mode first
+            if device == "opz" and check_opz_upgrade_mode(path):
+                return path, "upgrade"
+
             is_valid, _ = validate_device_folder_structure(device, path)
             if is_valid:
-                return path
-    return None
+                return path, "storage"
+    return None, None
 
 
 def find_device_mount_windows(device):
-    """Scan drive letters for a valid OP-Z or OP-1 mount on Windows."""
+    """Scan drive letters for a valid OP-Z or OP-1 mount on Windows.
+
+    Returns:
+        tuple: (path, mode) where mode is "storage" or "upgrade", or (None, None) if not found
+    """
     import string
     for letter in string.ascii_uppercase:
         path = f"{letter}:\\"
         if os.path.exists(path):
+            # For OP-Z, check for upgrade mode first
+            if device == "opz" and check_opz_upgrade_mode(path):
+                return path, "upgrade"
+
             is_valid, _ = validate_device_folder_structure(device, path)
             if is_valid:
-                return path
-    return None
+                return path, "storage"
+    return None, None
 
 
 def find_device_mount(device):
-    """Find device mount path based on current OS."""
+    """Find device mount path based on current OS.
+
+    Returns:
+        tuple: (path, mode) where mode is "storage" or "upgrade", or (None, None) if not found
+    """
     if sys.platform == "darwin":
         return find_device_mount_macos(device)
     elif sys.platform == "win32":
         return find_device_mount_windows(device)
-    return None
+    return None, None
 
 
 def broadcast_sse_event(event_type, data):
@@ -284,11 +328,11 @@ def on_usb_connect(device_id, device_info):
             # Wait a bit for the device to mount
             time.sleep(1.5)
 
-            mount_path = find_device_mount(device)
+            mount_path, detected_mode = find_device_mount(device)
 
             if mount_path:
-                print(f"Found mount path: {mount_path}")
-                update_device_status(device, connected=True, path=mount_path, usb_detected=True, mode="storage")
+                print(f"Found mount path: {mount_path} (mode: {detected_mode})")
+                update_device_status(device, connected=True, path=mount_path, usb_detected=True, mode=detected_mode)
             else:
                 # USB detected but mount path not found yet - start polling
                 print(f"Mount path not found for {device}, starting background polling...")
@@ -361,10 +405,10 @@ def poll_for_mount_path(device, max_attempts=30, interval=1.0):
                     # Device disconnected or path already found
                     return
 
-            mount_path = find_device_mount(device)
+            mount_path, detected_mode = find_device_mount(device)
             if mount_path:
-                print(f"Found mount path on attempt {attempt + 1}: {mount_path}")
-                update_device_status(device, connected=True, path=mount_path, usb_detected=True, mode="storage")
+                print(f"Found mount path on attempt {attempt + 1}: {mount_path} (mode: {detected_mode})")
+                update_device_status(device, connected=True, path=mount_path, usb_detected=True, mode=detected_mode)
                 return
 
             time.sleep(interval)
@@ -381,10 +425,10 @@ def scan_for_connected_devices():
 
     # First check for devices in storage mode (with mount paths)
     for device in ["opz", "op1"]:
-        mount_path = find_device_mount(device)
-        print(f"  {device}: mount_path={mount_path}")
+        mount_path, detected_mode = find_device_mount(device)
+        print(f"  {device}: mount_path={mount_path}, mode={detected_mode}")
         if mount_path:
-            update_device_status(device, connected=True, path=mount_path, usb_detected=True, mode="storage")
+            update_device_status(device, connected=True, path=mount_path, usb_detected=True, mode=detected_mode)
 
     # Also scan for USB devices in normal/MIDI mode (no mount path)
     try:

@@ -212,6 +212,14 @@ const deviceStatus = {
                     toast.dismiss(toastElement);
                 });
             }
+        } else if (mode === 'upgrade') {
+            // Upgrade mode - device is in firmware update mode
+            message = 'Device is in upgrade mode';
+            toastElement = toast.warning(
+                message,
+                `Device connected: ${deviceName}`,
+                { duration: 5000 }
+            );
         } else if (mode === 'other') {
             // Non-storage mode (MIDI/normal) - no disk access
             message = 'Switch to disk mode for file access';
@@ -289,6 +297,12 @@ const deviceStatus = {
             instructions = `
                 <p>Your <strong>${deviceName}</strong> is not currently connected.</p>
                 <p>Connect your device via USB and switch it to disk mode to access files.</p>
+            `;
+        } else if (mode === 'upgrade') {
+            titleEl.textContent = `${deviceName} - Upgrade Mode`;
+            instructions = `
+                <p>Your <strong>${deviceName}</strong> is in <strong>upgrade mode</strong>.</p>
+                <p>This mode is used for firmware updates. To access samples, you need to switch to disk mode:</p>
             `;
         } else if (mode === 'other') {
             instructions = `

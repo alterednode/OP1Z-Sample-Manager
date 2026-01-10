@@ -181,23 +181,31 @@ function updateDeviceSidebar(device, connected, path, mode) {
 
     if (connected && mode === 'storage' && path) {
         // Storage mode with path - fully connected
-        indicator.classList.remove('disconnected', 'scanning');
+        indicator.classList.remove('disconnected', 'scanning', 'wrong-mode');
         indicator.classList.add('connected');
         statusText.textContent = 'Connected in disk mode';
         pathText.textContent = path;
         pathText.classList.remove('mode-hint');
         card.classList.remove('disabled');
+    } else if (connected && mode === 'upgrade') {
+        // Upgrade mode - device is in firmware update mode
+        indicator.classList.remove('disconnected', 'scanning', 'connected');
+        indicator.classList.add('wrong-mode');
+        statusText.textContent = 'Connected in upgrade mode';
+        pathText.textContent = 'Switch to disk mode for file access';
+        pathText.classList.add('mode-hint');
+        card.classList.add('disabled');
     } else if (connected && mode === 'other') {
         // Non-storage mode (MIDI/normal) - connected but no disk access
-        indicator.classList.remove('disconnected', 'scanning');
-        indicator.classList.add('connected');
+        indicator.classList.remove('disconnected', 'scanning', 'connected');
+        indicator.classList.add('wrong-mode');
         statusText.textContent = 'Connected in normal mode';
         pathText.textContent = 'Switch to disk mode for file access';
         pathText.classList.add('mode-hint');
         card.classList.add('disabled');
     } else if (connected && mode === 'storage' && !path) {
         // Storage mode but path not found yet
-        indicator.classList.remove('disconnected', 'scanning');
+        indicator.classList.remove('disconnected', 'scanning', 'wrong-mode');
         indicator.classList.add('connected');
         statusText.textContent = 'Connected in disk mode';
         pathText.textContent = 'Mounting...';

@@ -162,6 +162,11 @@ body > .container {
     box-shadow: 0 0 6px var(--first-color);
 }
 
+.status-indicator.wrong-mode {
+    background-color: var(--third-color);
+    box-shadow: 0 0 6px var(--third-color);
+}
+
 .status-indicator.disconnected {
     background-color: var(--neutral-gray);
 }
