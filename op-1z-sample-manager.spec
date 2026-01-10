@@ -72,7 +72,7 @@ if sys.platform == 'win32':
         bootloader_ignore_signals=False,
         strip=False,
         upx=False,
-        console=False,
+        console=True,
         disable_windowed_traceback=False,
         target_arch=None,
         icon='static/favicon.ico',
