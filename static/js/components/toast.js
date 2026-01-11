@@ -16,9 +16,18 @@
  *
  *   // With options:
  *   toast.success('Done!', null, { duration: 5000 });
+ * 
+ *  // With action buttons:
+ *  toast.info('New update available', 'Update', {
+ *     duration: 5000,
+ *    actions: [
+ *      { text: 'Update Now', type: 'primary', onClick: () => { ... } },
+ *      { text: 'Remind Me Later', type: 'secondary', onClick: () => { ... }, keepOpen: true }
+ *    ]
+ *  });
  */
 
-const toast = (function() {
+const toast = (function () {
     // Default settings
     const defaults = {
         duration: 4000,      // Auto-dismiss after 4 seconds
@@ -37,6 +46,13 @@ const toast = (function() {
 
     let container = null;
 
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     /**
      * Ensure the toast container exists
      */
@@ -54,12 +70,12 @@ const toast = (function() {
     }
 
     /**
-     * Create and show a toast notification
-     * @param {string} type - 'success', 'error', 'warning', 'info'
-     * @param {string} message - The message to display
-     * @param {string|null} title - Optional title
-     * @param {object} options - Optional settings (duration, etc.)
-     */
+ * Create and show a toast notification
+ * @param {string} type - 'success', 'error', 'warning', 'info'
+ * @param {string} message - The message to display
+ * @param {string|null} title - Optional title
+ * @param {object} options - Optional settings (duration, etc.)
+ */
     function show(type, message, title = null, options = {}) {
         const settings = { ...defaults, ...options };
         const container = ensureContainer();
@@ -67,6 +83,19 @@ const toast = (function() {
         // Create toast element
         const toastEl = document.createElement('div');
         toastEl.className = `toast toast-${type}`;
+
+        // Process buttons
+        const actions = Array.isArray(settings.actions) ? settings.actions : [];
+        let actionsHtml = '';
+
+        if (actions.length > 0) {
+            const buttonsHtml = actions.map((action, index) => {
+                // types: 'primary', 'secondary', 'danger'
+                const typeClass = action.type ? `toast-btn-${action.type}` : 'toast-btn-secondary';
+                return `<button class="toast-action-btn ${typeClass}" data-index="${index}">${escapeHtml(action.text)}</button>`;
+            }).join('');
+            actionsHtml = `<div class="toast-actions">${buttonsHtml}</div>`;
+        }
 
         // Build inner HTML
         const titleHtml = title ? `<div class="toast-title">${escapeHtml(title)}</div>` : '';
@@ -76,9 +105,21 @@ const toast = (function() {
             <div class="toast-content">
                 ${titleHtml}
                 <div class="toast-message">${escapeHtml(message)}</div>
+                ${actionsHtml}
             </div>
             <button class="toast-close" aria-label="Close">${closeIcon}</button>
         `;
+
+        // Bind Action Events
+        if (actions.length > 0) {
+            toastEl.querySelectorAll('.toast-action-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const action = actions[parseInt(btn.getAttribute('data-index'))];
+                    if (action.onClick) action.onClick(e);
+                    if (!action.keepOpen) dismiss(toastEl);
+                });
+            });
+        }
 
         // Add close button handler
         const closeBtn = toastEl.querySelector('.toast-close');
@@ -96,8 +137,8 @@ const toast = (function() {
     }
 
     /**
-     * Dismiss a toast with animation
-     */
+    * Dismiss a toast with animation
+    */
     function dismiss(toastEl) {
         if (!toastEl || toastEl.classList.contains('toast-hiding')) return;
 
