@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
     var codeEl = document.getElementById('app-version');
-    var loadingEl = document.getElementById('app-version-loading');
     if (!codeEl) return;
     fetch('/get_app_version')
         .then(function(resp) {
