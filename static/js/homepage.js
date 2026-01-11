@@ -153,6 +153,47 @@ function stopDeviceScanning(device) {
     }
 }
 
+// Device status display configurations
+const DEVICE_STATUS_CONFIG = {
+    storage: {
+        indicatorClass: 'connected',
+        statusText: 'Connected in disk mode',
+        pathTextFn: (path) => path || 'Mounting...',
+        isHint: (path) => !path,
+        disabled: (path) => !path
+    },
+    upgrade: {
+        indicatorClass: 'wrong-mode',
+        statusText: 'Connected in upgrade mode',
+        pathText: 'Switch to disk mode for file access',
+        isHint: true,
+        disabled: true
+    },
+    standby: {
+        indicatorClass: 'standby',
+        statusText: 'Device off',
+        pathText: 'Power on device for access',
+        isHint: true,
+        disabled: true
+    },
+    other: {
+        indicatorClass: 'wrong-mode',
+        statusText: 'Connected in standalone mode',
+        pathText: 'Switch to disk mode for file access',
+        isHint: true,
+        disabled: true
+    },
+    disconnected: {
+        indicatorClass: 'disconnected',
+        statusText: 'Not connected',
+        pathText: '',
+        isHint: false,
+        disabled: true
+    }
+};
+
+const ALL_INDICATOR_CLASSES = ['connected', 'disconnected', 'scanning', 'wrong-mode', 'standby'];
+
 /**
  * Update device sidebar card with current status
  */
@@ -179,57 +220,53 @@ function updateDeviceSidebar(device, connected, path, mode) {
         state.previousMode = mode;
     }
 
-    if (connected && mode === 'storage' && path) {
-        // Storage mode with path - fully connected
-        indicator.classList.remove('disconnected', 'scanning', 'wrong-mode');
-        indicator.classList.add('connected');
-        statusText.textContent = 'Connected in disk mode';
-        pathText.textContent = path;
-        pathText.classList.remove('mode-hint');
-        card.classList.remove('disabled');
-    } else if (connected && mode === 'upgrade') {
-        // Upgrade mode - device is in firmware update mode
-        indicator.classList.remove('disconnected', 'scanning', 'connected');
-        indicator.classList.add('wrong-mode');
-        statusText.textContent = 'Connected in upgrade mode';
-        pathText.textContent = 'Switch to disk mode for file access';
-        pathText.classList.add('mode-hint');
-        card.classList.add('disabled');
-    } else if (connected && mode === 'other') {
-        // Non-storage mode (MIDI/normal) - connected but no disk access
-        indicator.classList.remove('disconnected', 'scanning', 'connected');
-        indicator.classList.add('wrong-mode');
-        statusText.textContent = 'Connected in standalone mode';
-        pathText.textContent = 'Switch to disk mode for file access';
-        pathText.classList.add('mode-hint');
-        card.classList.add('disabled');
-    } else if (connected && mode === 'storage' && !path) {
-        // Storage mode but path not found yet
-        indicator.classList.remove('disconnected', 'scanning', 'wrong-mode');
-        indicator.classList.add('connected');
-        statusText.textContent = 'Connected in disk mode';
-        pathText.textContent = 'Mounting...';
-        pathText.classList.remove('mode-hint');
-        card.classList.add('disabled');
-    } else {
-        // Not connected - check if we should show scanning state
-        // Start scanning if device was previously connected (mode switch scenario)
+    // Handle disconnected state with scanning logic
+    if (!connected) {
         if (previousMode !== null && state && !state.scanning) {
             startDeviceScanning(device);
             card.classList.add('disabled');
         } else if (state && state.scanning) {
-            // Already scanning, keep that state
             card.classList.add('disabled');
         } else {
-            // Normal disconnected state
-            indicator.classList.remove('connected', 'scanning', 'wrong-mode');
-            indicator.classList.add('disconnected');
-            statusText.textContent = 'Not connected';
-            pathText.textContent = '';
-            pathText.classList.remove('mode-hint');
-            card.classList.add('disabled');
+            applyDeviceStatus(indicator, statusText, pathText, card, 'disconnected');
         }
+        return;
     }
+
+    // Apply connected status based on mode
+    applyDeviceStatus(indicator, statusText, pathText, card, mode, path);
+}
+
+/**
+ * Apply device status configuration to UI elements
+ */
+function applyDeviceStatus(indicator, statusText, pathText, card, mode, path = null) {
+    const config = DEVICE_STATUS_CONFIG[mode] || DEVICE_STATUS_CONFIG.disconnected;
+
+    // Update indicator
+    indicator.classList.remove(...ALL_INDICATOR_CLASSES);
+    indicator.classList.add(config.indicatorClass);
+
+    // Update status text
+    statusText.textContent = config.statusText;
+
+    // Update path text (can be static or dynamic based on path)
+    const pathValue = typeof config.pathTextFn === 'function'
+        ? config.pathTextFn(path)
+        : config.pathText;
+    pathText.textContent = pathValue;
+
+    // Update hint class
+    const isHint = typeof config.isHint === 'function'
+        ? config.isHint(path)
+        : config.isHint;
+    pathText.classList.toggle('mode-hint', isHint);
+
+    // Update disabled state
+    const isDisabled = typeof config.disabled === 'function'
+        ? config.disabled(path)
+        : config.disabled;
+    card.classList.toggle('disabled', isDisabled);
 }
 
 /**
