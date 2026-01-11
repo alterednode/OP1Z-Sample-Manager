@@ -199,7 +199,7 @@ function updateDeviceSidebar(device, connected, path, mode) {
         // Non-storage mode (MIDI/normal) - connected but no disk access
         indicator.classList.remove('disconnected', 'scanning', 'connected');
         indicator.classList.add('wrong-mode');
-        statusText.textContent = 'Connected in normal mode';
+        statusText.textContent = 'Connected in standalone mode';
         pathText.textContent = 'Switch to disk mode for file access';
         pathText.classList.add('mode-hint');
         card.classList.add('disabled');
@@ -222,7 +222,7 @@ function updateDeviceSidebar(device, connected, path, mode) {
             card.classList.add('disabled');
         } else {
             // Normal disconnected state
-            indicator.classList.remove('connected', 'scanning');
+            indicator.classList.remove('connected', 'scanning', 'wrong-mode');
             indicator.classList.add('disconnected');
             statusText.textContent = 'Not connected';
             pathText.textContent = '';
